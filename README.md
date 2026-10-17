@@ -5,4 +5,4 @@ Site deficiency tracker for Caivan Communities land development (Ottawa): CB, GL
 - Static site, no build step: `index.html`, `app.js`, `logic.js`, libraries in `lib/`.
 - Data: Supabase (database, email-code sign-in, private photo storage). Connection in `config.js`. The anon key is public by design; row-level security in the database decides who can see or change anything.
 - Database setup: `supabase-setup.sql` (safe to run more than once).
-- Hosted on GitHub Pages from the `main` branch.
+- Live at https://cherifamine085-netizen.github.io/Amin-deficiency-log/ (GitHub Pages, `main` branch).
