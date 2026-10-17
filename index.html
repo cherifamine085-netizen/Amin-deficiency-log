@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Caivan Deficiency Log</title>
+<meta name="theme-color" content="#1f5b8f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Deficiencies">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+:root{
+  --bg:#eef0ee; --surface:#ffffff; --ink:#1d2421; --muted:#5d6762; --line:#d3d8d4;
+  --accent:#1f5b8f; --accent-ink:#ffffff; --accent-soft:#e3edf6;
+  --ok:#2f7a4a; --warn:#b4780a; --bad:#b3362c; --new:#7a4fa0;
+  --age1:#9fb8a8; --age2:#d9b24a; --age3:#d9813c; --age4:#b3362c;
+  --u-red:#c8372d; --u-yellow:#c9a20a; --u-orange:#d9701e; --u-blue:#2463a8; --u-green:#2f7a4a; --u-purple:#7a4fa0; --u-grey:#6c7570; --u-brown:#8a6a3d;
+  --f-display:"Arial Narrow","Roboto Condensed","Helvetica Neue",Arial,sans-serif;
+  --f-body:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --f-mono:ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#151a18; --surface:#1e2522; --ink:#e6ebe8; --muted:#9aa59f; --line:#323b37;
+  --accent:#6fa8dc; --accent-ink:#0d1a26; --accent-soft:#1d2d3c;
+  --ok:#5fb37c; --warn:#e0a83a; --bad:#e2675b; --new:#b48fd4;
+  --age1:#5f7a6a; --age2:#b8963a; --age3:#c4702f; --age4:#d0564a;
+  --u-red:#e2675b; --u-yellow:#e0c03a; --u-orange:#ec8c42; --u-blue:#6fa8dc; --u-green:#5fb37c; --u-purple:#a983c9; --u-grey:#9aa59f; --u-brown:#c09a63;
+  color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(48px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+img{max-width:100%}
+.wrap{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;margin:0;text-wrap:balance}
+h1{font-size:30px;line-height:1.05}
+h2{font-size:19px;text-transform:uppercase;letter-spacing:.05em}
+.mono{font-family:var(--f-mono);font-size:13px}
+.muted{color:var(--muted)}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.55;cursor:default}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.eyebrow{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.12em;font-size:13px;color:var(--muted);font-weight:700}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:8px 14px;font-weight:600}
+.btn:hover:not(:disabled){border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--bad)}
+.btn.small{padding:5px 10px;font-size:13px}
+.btn.link{border:0;background:none;padding:4px 6px;color:var(--accent)}
+.notice{border:1px dashed var(--line);border-radius:6px;padding:10px 14px;background:var(--surface);font-size:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.notice.warn{border-color:var(--warn)} .notice.info{border-color:var(--accent)}
+.pill{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;font-size:12px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--muted)}
+.pill.sync{color:var(--warn);border-color:var(--warn)}
+/* login */
+.login{max-width:380px;margin:12vh auto 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:24px;display:flex;flex-direction:column;gap:14px}
+.login input{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:10px 12px;font-size:17px;width:100%}
+.login .code{letter-spacing:.4em;font-family:var(--f-mono);text-align:center}
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.kpi{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .n{font-family:var(--f-display);font-size:36px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.kpi .s{font-size:13px;color:var(--muted)}
+.kpi.bad .n{color:var(--bad)} .kpi.new .n{color:var(--new)}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis .kpi:last-child{grid-column:1/-1}}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.tab{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:600;display:inline-flex;gap:8px;align-items:center}
+.tab i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.tab .c{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab[aria-pressed="true"] .c{color:var(--bg);opacity:.75}
+.grid2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px}
+@media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.age-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted)}
+.age-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.crow{display:grid;grid-template-columns:minmax(90px,150px) minmax(0,1fr) 64px;gap:10px;align-items:center;font-size:14px}
+.crow .name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar{display:flex;height:20px;background:var(--bg);border-radius:4px;overflow:hidden}
+.bar span{display:block;height:100%}
+.crow .cnt{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--f-mono);font-size:13px}
+.crow .cnt b{color:var(--bad);font-weight:500}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.filters select,.filters input{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:7px 10px;min-width:0}
+.filters input{flex:1 1 200px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;min-width:1080px;font-size:14px}
+th{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.05em;font-size:13px;color:var(--muted);text-align:left;padding:10px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
+th.nosort{cursor:default}
+th[aria-sort="ascending"]::after{content:" ▲";font-size:10px}
+th[aria-sort="descending"]::after{content:" ▼";font-size:10px}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+tbody tr{box-shadow:inset 3px 0 0 transparent}
+tbody tr.p-High,.card.p-High{box-shadow:inset 3px 0 0 var(--bad)}
+tbody tr.p-Medium,.card.p-Medium{box-shadow:inset 3px 0 0 var(--warn)}
+tbody tr:hover{background:var(--accent-soft)}
+td.desc{max-width:320px}
+td.num{font-variant-numeric:tabular-nums;font-family:var(--f-mono);font-size:13px;white-space:nowrap}
+.late{color:var(--bad);font-weight:600}
+.cat{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.cat i{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.tag{font-family:var(--f-mono);font-size:11px;border:1px solid var(--line);border-radius:3px;padding:0 4px;color:var(--muted);margin-left:4px;white-space:nowrap}
+.tag.new{color:var(--new);border-color:var(--new)} .tag.sync{color:var(--warn);border-color:var(--warn)}
+select.status{border:1px solid var(--line);border-radius:999px;padding:3px 8px;font-size:13px;font-weight:600;background:var(--surface)}
+select.status.s-Open{color:var(--bad);border-color:var(--bad)}
+select.status.s-In-progress{color:var(--warn);border-color:var(--warn)}
+select.status.s-Ready-for-re-inspection{color:var(--accent);border-color:var(--accent)}
+select.status.s-Closed{color:var(--ok);border-color:var(--ok)}
+.thumb{width:44px;height:44px;border-radius:4px;object-fit:cover;border:1px solid var(--line);background:var(--bg);display:block}
+.thumbbtn{padding:0;border:0;background:none;position:relative}
+.thumbbtn .more{position:absolute;right:2px;bottom:2px;background:var(--ink);color:var(--bg);font-size:10px;font-family:var(--f-mono);border-radius:3px;padding:0 3px}
+.nophoto{width:44px;height:44px;border:1px dashed var(--line);border-radius:4px;display:grid;place-items:center;color:var(--muted);font-size:18px;background:none}
+.empty{padding:36px 16px;text-align:center;color:var(--muted)}
+.cards{display:none;flex-direction:column;gap:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px;display:grid;grid-template-columns:56px minmax(0,1fr);gap:10px}
+.card .thumb,.card .nophoto{width:56px;height:56px}
+.card .meta{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 10px}
+.card .loc{font-weight:600}
+.card .row{display:flex;justify-content:space-between;align-items:center;gap:8px;grid-column:1/-1}
+@media (max-width:700px){.tablewrap{display:none}.cards{display:flex}}
+/* drawers */
+.overlay{position:fixed;inset:0;background:rgba(10,14,12,.45);z-index:20;display:flex;justify-content:flex-end}
+.drawer{background:var(--surface);width:min(580px,100%);height:100%;overflow-y:auto;
+  padding:calc(20px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) 20px;
+  display:flex;flex-direction:column;gap:14px;border-left:1px solid var(--line)}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form .full{grid-column:1/-1}
+@media (max-width:440px){.form{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label,.lbl{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+.field input,.field select,.field textarea{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:9px 10px;width:100%;font-size:16px}
+textarea{resize:vertical}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.ph{position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;border:1px solid var(--line);background:var(--bg)}
+.ph img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.ph .x{position:absolute;top:4px;right:4px;border:0;border-radius:4px;background:var(--surface);color:var(--bad);font-size:12px;font-weight:600;padding:2px 6px}
+.ph.loading{display:grid;place-items:center;font-size:12px;color:var(--muted)}
+.addph{position:relative;aspect-ratio:1;border:1px dashed var(--accent);border-radius:6px;display:grid;place-items:center;text-align:center;color:var(--accent);font-weight:600;font-size:13px;cursor:pointer;padding:6px}
+.addph input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.out{font-family:var(--f-mono);font-size:13px;white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:12px;min-height:160px;width:100%}
+.hint{font-size:13px;color:var(--muted)}
+.report{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.report div{background:var(--bg);border-radius:6px;padding:10px;text-align:center}
+.report b{display:block;font-family:var(--f-display);font-size:28px}
+.history{display:flex;flex-direction:column;gap:6px;font-size:13px;border-top:1px solid var(--line);padding-top:12px}
+.history div{display:flex;gap:8px}.history time{color:var(--muted);font-family:var(--f-mono);font-size:12px;white-space:nowrap}
+.match{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:start;background:var(--bg);border-radius:6px;padding:8px}
+.match img{width:72px;height:72px;object-fit:cover;border-radius:4px}
+.match select{width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;background:var(--surface)}
+.mlist{display:flex;flex-direction:column;gap:8px}
+.member{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.member select{border:1px solid var(--line);border-radius:6px;padding:5px;background:var(--surface)}
+.lightbox{position:fixed;inset:0;background:rgba(5,8,7,.9);z-index:40;display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px))}
+.lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:4px}
+.lightbox button{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px))}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:6px;z-index:50;font-weight:600;max-width:90vw;text-align:center}
+.menu{position:relative}
+.menu-list{position:absolute;right:0;top:calc(100% + 4px);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px;display:flex;flex-direction:column;min-width:220px;z-index:15;box-shadow:0 8px 24px rgba(0,0,0,.15)}
+.menu-list button{border:0;background:none;text-align:left;padding:9px 10px;border-radius:5px;font-weight:600}
+.menu-list button:hover{background:var(--accent-soft)}
+@media (prefers-reduced-motion:no-preference){.drawer{animation:slide .18s ease-out}@keyframes slide{from{transform:translateX(24px);opacity:.6}}}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<section class="login" id="screenLogin" hidden>
+  <div><div class="eyebrow">Caivan Communities · Land Field</div><h1>Deficiency Log</h1></div>
+  <form id="loginEmail" class="field" style="gap:10px">
+    <label for="lEmail">Work email</label>
+    <input id="lEmail" type="email" autocomplete="email" required placeholder="name@caivan.com">
+    <button class="btn primary" type="submit" id="btnSendCode">Send me a code</button>
+  </form>
+  <form id="loginCode" class="field" style="gap:10px" hidden>
+    <label for="lCode">6-digit code from your email</label>
+    <input id="lCode" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+    <button class="btn primary" type="submit" id="btnVerify">Sign in</button>
+    <button class="btn link" type="button" id="btnBackEmail">Use a different email</button>
+  </form>
+  <div class="hint" id="loginMsg"></div>
+</section>
+
+<section class="login" id="screenNoAccess" hidden>
+  <h1>No access yet</h1>
+  <p>You're signed in as <b id="naEmail"></b>, but this email isn't on the team list. Ask Amine to add you, then reload.</p>
+  <button class="btn" type="button" id="btnSignOut2">Sign out</button>
+</section>
+
+<section class="login" id="screenSetup" hidden>
+  <h1>Setup needed</h1>
+  <p>The app isn't connected to its database yet. Fill in <span class="mono">config.js</span> with the Supabase project URL and anon key (see SETUP.md).</p>
+</section>
+
+<!-- App -->
+<div class="wrap" id="screenApp" hidden>
+  <header class="top">
+    <div>
+      <div class="eyebrow">Caivan Communities · Land Field</div>
+      <h1>Deficiency Log</h1>
+    </div>
+    <div class="actions">
+      <span class="pill" id="roBadge" hidden>View only</span>
+      <span class="pill sync" id="syncBadge" hidden></span>
+      <button class="btn primary" id="btnAdd" type="button">Add deficiency</button>
+      <button class="btn" id="btnPhotos" type="button">Match photos</button>
+      <button class="btn" id="btnReports" type="button">Reports</button>
+      <div class="menu">
+        <button class="btn" id="btnMore" type="button" aria-haspopup="true" aria-expanded="false">More</button>
+        <div class="menu-list" id="moreMenu" hidden>
+          <button type="button" data-cmd="import">Import weekly tracker</button>
+          <button type="button" data-cmd="bluebeam">Import Bluebeam markups</button>
+          <button type="button" data-cmd="history">Import past trackers</button>
+          <button type="button" data-cmd="export">Export to Excel</button>
+          <button type="button" data-cmd="team">Team</button>
+          <button type="button" data-cmd="trash">Trash</button>
+          <button type="button" data-cmd="signout">Sign out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="notice warn" id="noticeOffline" hidden><span>You're offline. You can keep adding items and photos; they'll upload when you're back online.</span></div>
+  <div class="notice info" id="noticeReport" hidden><span id="noticeReportText">This week's report is ready.</span><button class="btn small" type="button" id="btnOpenReport">Open report</button></div>
+  <div class="notice" id="noticeExamples" hidden><span>Rows marked <span class="tag">EX</span> are examples. Clear them before importing your team's tracker.</span><button class="btn small danger" id="btnClearEx" type="button">Clear examples</button></div>
+
+  <section class="kpis" aria-label="Summary">
+    <div class="kpi"><span class="l">Open</span><span class="n" id="kOpen">–</span><span class="s" id="kOpenS">&nbsp;</span></div>
+    <div class="kpi bad"><span class="l">Overdue</span><span class="n" id="kLate">–</span><span class="s" id="kLateS">&nbsp;</span></div>
+    <div class="kpi new"><span class="l">New this week</span><span class="n" id="kNew">–</span><span class="s">raised or imported in 7 days</span></div>
+    <div class="kpi"><span class="l">Closed last 7 days</span><span class="n" id="kClosed">–</span><span class="s" id="kClosedS">&nbsp;</span></div>
+    <div class="kpi"><span class="l">No photo yet</span><span class="n" id="kPhoto">–</span><span class="s">open items</span></div>
+  </section>
+
+  <nav class="tabs" id="tabs" aria-label="Item type"></nav>
+
+  <div class="grid2">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Open items by contractor</h2>
+        <div class="age-legend"><span><i style="background:var(--age1)"></i>0–7 d</span><span><i style="background:var(--age2)"></i>8–14 d</span><span><i style="background:var(--age3)"></i>15–30 d</span><span><i style="background:var(--age4)"></i>30+ d</span></div>
+      </div>
+      <div id="ageing" style="display:flex;flex-direction:column;gap:10px"></div>
+      <div class="hint">Right column: open items, overdue in red. Follows the type tab and project filter.</div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2>Contractor punch list</h2></div>
+      <div class="filters">
+        <select id="plContractor" aria-label="Contractor for punch list"></select>
+        <button class="btn small" id="btnCopyPL" type="button">Copy text</button>
+        <button class="btn small primary" id="btnPDF" type="button">PDF with photos</button>
+      </div>
+      <div class="out" id="plOut" style="min-height:170px;max-height:280px;overflow:auto"></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head"><h2 id="logTitle">Log</h2><span class="muted" id="countLabel"></span></div>
+    <div class="filters">
+      <input id="fSearch" type="search" placeholder="Search lot, street, description, ID">
+      <select id="fProject" aria-label="Project"></select>
+      <select id="fContractor" aria-label="Contractor"></select>
+      <select id="fStatus" aria-label="Status">
+        <option value="active">Not closed</option><option value="">All statuses</option>
+        <option>Open</option><option>In progress</option><option>Ready for re-inspection</option><option>Closed</option>
+        <option value="late">Overdue only</option><option value="new">New this week</option><option value="nophoto">Open, no photo</option>
+      </select>
+      <select id="fPriority" aria-label="Priority"><option value="">All priorities</option><option>High</option><option>Medium</option><option>Low</option></select>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr>
+          <th class="nosort">Photo</th><th data-k="ref">ID</th><th data-k="project">Project</th><th data-k="location">Location</th><th data-k="category">Type</th>
+          <th data-k="description">Description</th><th data-k="contractor">Contractor</th><th data-k="priority">Pri.</th>
+          <th data-k="raised">Raised</th><th data-k="due">Due</th><th data-k="age">Age</th><th data-k="status">Status</th><th class="nosort"></th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="cards" id="cards"></div>
+    <div class="empty" id="empty" hidden></div>
+  </section>
+</div>
+
+<!-- Add / edit -->
+<div class="overlay" id="ovEdit" hidden>
+  <form class="drawer" id="editForm" autocomplete="off">
+    <div class="drawer-head"><h2 id="editTitle">Add deficiency</h2><button class="btn small" type="button" data-close>Close</button></div>
+    <div>
+      <div class="lbl" style="margin-bottom:6px">Photos</div>
+      <div class="photos" id="ePhotos"></div>
+      <div class="hint" id="ePhotoHint" style="margin-top:6px">On your phone, "Add photos" opens the camera or your gallery.</div>
+    </div>
+    <div class="form">
+      <div class="field"><label for="eCategory">Type</label><select id="eCategory"></select></div>
+      <div class="field"><label for="ePriority">Priority</label><select id="ePriority"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+      <div class="field"><label for="eProject">Project</label><input id="eProject" list="projList" required placeholder="Conservancy"></div>
+      <div class="field"><label for="eContractor">Contractor</label><input id="eContractor" list="conList" required placeholder="Thunderbolt"></div>
+      <div class="field full"><label for="eLocation">Location</label><input id="eLocation" required placeholder="Block 60, Lot 12 – front of house"></div>
+      <div class="field full"><label for="eDescription">Description</label><textarea id="eDescription" rows="3" required placeholder="CB frame 25 mm high, adjust to asphalt"></textarea></div>
+      <div class="field"><label for="eRaised">Raised</label><input id="eRaised" type="date" required></div>
+      <div class="field"><label for="eDue">Due</label><input id="eDue" type="date"></div>
+      <div class="field"><label for="eStatus">Status</label><select id="eStatus"><option>Open</option><option>In progress</option><option>Ready for re-inspection</option><option>Closed</option></select></div>
+      <div class="field"><label for="eClosed">Closed on</label><input id="eClosed" type="date"></div>
+      <div class="field full"><label for="eNotes">Notes / follow-up</label><textarea id="eNotes" rows="2" placeholder="Emailed Canada Post Oct 14, waiting on install date"></textarea></div>
+    </div>
+    <div class="hint" id="eGeo"></div>
+    <div class="history" id="eHistory" hidden></div>
+    <div class="actions">
+      <button class="btn primary" type="submit" id="btnSave">Save</button>
+      <button class="btn danger" type="button" id="btnDelete" hidden>Move to Trash</button>
+      <button class="btn danger" type="button" id="btnDeleteConfirm" hidden>Confirm: move to Trash</button>
+      <button class="btn" type="button" id="btnRestore" hidden>Restore</button>
+    </div>
+    <datalist id="projList"></datalist><datalist id="conList"></datalist>
+  </form>
+</div>
+
+<!-- Import -->
+<div class="overlay" id="ovImport" hidden>
+  <div class="drawer">
+    <div class="drawer-head"><h2 id="impTitle">Import weekly tracker</h2><button class="btn small" type="button" data-close>Close</button></div>
+    <p class="hint" style="margin:0" id="impHint"></p>
+    <div class="field"><label for="iFile" id="iFileLabel">File</label><input id="iFile" type="file" accept=".xlsx,.xls,.csv"></div>
+    <div class="field" id="iSheetWrap" hidden><label for="iSheet">Sheet</label><select id="iSheet"></select></div>
+    <div class="field"><label for="iProject">Project for rows without one</label><input id="iProject" list="projList" placeholder="Fox Run"></div>
+    <div id="iResult" hidden style="display:flex;flex-direction:column;gap:10px">
+      <div class="report"><div><b id="rNew">0</b>new</div><div><b id="rUpd">0</b>updated</div><div><b id="rSame">0</b>unchanged</div></div>
+      <div class="hint" id="iCols"></div>
+    </div>
+    <div class="out" id="iLog" hidden style="min-height:0"></div>
+    <div class="hint" id="iMsg"></div>
+    <div class="actions"><button class="btn primary" type="button" id="btnDoImport" disabled>Apply import</button></div>
+  </div>
+</div>
+
+<!-- Match photos -->
+<div class="overlay" id="ovPhotos" hidden>
+  <div class="drawer">
+    <div class="drawer-head"><h2>Match photos</h2><button class="btn small" type="button" data-close>Close</button></div>
+    <p class="hint" style="margin:0">Pick a batch of site photos. Each one is matched to the nearest deficiency (by GPS, within 75 m) or to an item raised the same day. Check the matches, then attach.</p>
+    <label class="btn" style="position:relative;align-self:flex-start">Choose photos<input id="mFiles" type="file" accept="image/*" multiple style="position:absolute;inset:0;opacity:0"></label>
+    <div class="hint" id="mMsg"></div>
+    <div class="mlist" id="mList"></div>
+    <div class="actions"><button class="btn primary" type="button" id="btnAttach" hidden>Attach photos</button></div>
+  </div>
+</div>
+
+<!-- Reports -->
+<div class="overlay" id="ovReports" hidden>
+  <div class="drawer">
+    <div class="drawer-head"><h2>Reports</h2><button class="btn small" type="button" data-close>Close</button></div>
+    <div class="filters">
+      <select id="rKind" aria-label="Report"><option value="monday">Monday report (saved)</option><option value="live">Live summary (right now)</option></select>
+      <select id="sProject" aria-label="Project"></select>
+    </div>
+    <div class="out" id="sumOut"></div>
+    <div class="hint" id="sumHint"></div>
+    <div class="actions">
+      <button class="btn primary" id="btnCopySum" type="button">Copy</button>
+      <a class="btn" id="btnMailSum" href="#" style="text-decoration:none">Open in email</a>
+      <button class="btn" id="btnRebuild" type="button" hidden>Rebuild now</button>
+    </div>
+  </div>
+</div>
+
+<!-- Team -->
+<div class="overlay" id="ovTeam" hidden>
+  <div class="drawer">
+    <div class="drawer-head"><h2>Team</h2><button class="btn small" type="button" data-close>Close</button></div>
+    <p class="hint" style="margin:0">People on this list can sign in with their email; the app emails them a 6-digit code. Editors add and update items and photos. Viewers can only look and copy reports.</p>
+    <div id="teamList"></div>
+    <form id="teamForm" class="form" autocomplete="off">
+      <div class="field full"><label for="tEmail">Email</label><input id="tEmail" type="email" required></div>
+      <div class="field"><label for="tName">Name</label><input id="tName"></div>
+      <div class="field"><label for="tRole">Role</label><select id="tRole"><option value="editor">Editor</option><option value="viewer">Viewer</option><option value="admin">Admin</option></select></div>
+      <div class="full"><button class="btn primary" type="submit">Add person</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" hidden><img id="lbImg" alt="Deficiency photo"><button class="btn small" type="button" id="lbClose">Close</button></div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="config.js"></script>
+<script src="lib/supabase.js"></script>
+<script src="lib/xlsx.full.min.js"></script>
+<script src="lib/jspdf.umd.min.js"></script>
+<script src="lib/exifr.umd.js"></script>
+<script src="logic.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
