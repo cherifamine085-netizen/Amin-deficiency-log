@@ -179,7 +179,11 @@ textarea{resize:vertical}
   <form id="loginEmail" class="field" style="gap:10px">
     <label for="lEmail">Work email</label>
     <input id="lEmail" type="email" autocomplete="email" required placeholder="name@caivan.com">
-    <button class="btn primary" type="submit" id="btnSendCode">Send me a code</button>
+    <label for="lPass">Password</label>
+    <input id="lPass" type="password" autocomplete="current-password" placeholder="At least 8 characters">
+    <button class="btn primary" type="submit" id="btnSignIn">Sign in</button>
+    <button class="btn" type="button" id="btnCreate">First time? Create my password</button>
+    <button class="btn link" type="button" id="btnSendCode">Forgot it? Email me a code instead</button>
   </form>
   <form id="loginCode" class="field" style="gap:10px" hidden>
     <label for="lCode">6-digit code from your email</label>
@@ -223,6 +227,7 @@ textarea{resize:vertical}
           <button type="button" data-cmd="export">Export to Excel</button>
           <button type="button" data-cmd="team">Team</button>
           <button type="button" data-cmd="trash">Trash</button>
+          <button type="button" data-cmd="password">Change my password</button>
           <button type="button" data-cmd="signout">Sign out</button>
         </div>
       </div>

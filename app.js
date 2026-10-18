@@ -82,15 +82,51 @@ async function boot() {
   sb.auth.onAuthStateChange((ev, s) => { if (ev === "SIGNED_OUT") { session = null; show("screenLogin"); } });
   if (session) afterLogin(); else show("screenLogin");
 }
+const NOT_ON_TEAM = "This email isn't on the team list. Ask Amine to add you (More → Team), then try again.";
+const loginEmailValue = () => { const email = $("lEmail").value.trim().toLowerCase(); if (!email || !$("lEmail").checkValidity()) { $("loginMsg").textContent = "Enter your work email first."; $("lEmail").focus(); return null; } return email; };
+const passwordValue = () => { const p = $("lPass").value; if (p.length < 8) { $("loginMsg").textContent = "Passwords need at least 8 characters."; $("lPass").focus(); return null; } return p; };
+// Sign in with email + password (no email needed).
 $("loginEmail").addEventListener("submit", async e => {
-  e.preventDefault(); const email = $("lEmail").value.trim().toLowerCase(); const b = $("btnSendCode"); b.disabled = true; $("loginMsg").textContent = "";
+  e.preventDefault(); $("loginMsg").textContent = "";
+  const email = loginEmailValue(); if (!email) return; const password = passwordValue(); if (!password) return;
+  const b = $("btnSignIn"); b.disabled = true;
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  b.disabled = false;
+  if (error) { $("loginMsg").textContent = /invalid login/i.test(error.message) ? "Wrong email or password. First time here? Press \"Create my password\"." : /not confirmed/i.test(error.message) ? "This email isn't confirmed yet. Use \"Email me a code instead\" once." : "Couldn't sign in: " + error.message; return; }
+  session = data.session; afterLogin();
+});
+// First time: choose a password. Only emails on the team list can create an account (checked in the database).
+$("btnCreate").onclick = async () => {
+  $("loginMsg").textContent = "";
+  const email = loginEmailValue(); if (!email) return; const password = passwordValue(); if (!password) return;
+  const b = $("btnCreate"); b.disabled = true;
+  const { data, error } = await sb.auth.signUp({ email, password });
+  b.disabled = false;
+  if (error) { $("loginMsg").textContent = /database error|not_on_team/i.test(error.message) ? NOT_ON_TEAM : /password/i.test(error.message) ? "Pick a stronger password: " + error.message : "Couldn't create the account: " + error.message; return; }
+  if (data.user && data.user.identities && data.user.identities.length === 0) { $("loginMsg").textContent = "This email already has an account. Sign in with your password, or use \"Email me a code instead\" if you don't have one."; return; }
+  if (!data.session) { $("loginMsg").textContent = "Account created. Check your email to confirm it, then sign in here."; return; }
+  session = data.session; afterLogin();
+};
+// Backup: one-time code by email (limited to a few emails per hour on Supabase's built-in sender).
+$("btnSendCode").onclick = async () => {
+  $("loginMsg").textContent = "";
+  const email = loginEmailValue(); if (!email) return;
+  const b = $("btnSendCode"); b.disabled = true;
   const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
   b.disabled = false;
-  if (error) { $("loginMsg").textContent = /email rate limit/i.test(error.message) ? "The sign-in email limit was reached (the built-in sender allows only a few emails per hour). Wait up to an hour and press the button once, or set up your own email sender in Supabase."
-    : /rate|seconds/i.test(error.message) ? "Too many codes requested. Wait a minute and try again." : "Couldn't send the code: " + error.message; return; }
+  if (error) { $("loginMsg").textContent = /email rate limit/i.test(error.message) ? "The sign-in email limit was reached (only a few emails per hour). Sign in with your password instead, or try the code again in an hour."
+    : /database error|not_on_team/i.test(error.message) ? NOT_ON_TEAM : /rate|seconds/i.test(error.message) ? "Too many codes requested. Wait a minute and try again." : "Couldn't send the code: " + error.message; return; }
   $("loginEmail").hidden = true; $("loginCode").hidden = false; $("lCode").focus();
   $("loginMsg").textContent = "Code sent to " + email + ". Check your inbox (and junk folder).";
-});
+};
+async function changePassword() {
+  const p1 = prompt("New password (at least 8 characters):"); if (p1 == null) return;
+  if (p1.length < 8) { toast("Passwords need at least 8 characters. Nothing was changed.", 4000); return; }
+  const p2 = prompt("Type the new password again:"); if (p2 == null) return;
+  if (p1 !== p2) { toast("The two passwords didn't match. Nothing was changed.", 4000); return; }
+  const { error } = await sb.auth.updateUser({ password: p1 });
+  toast(error ? "Couldn't change the password: " + error.message : "Password changed. Use it next time you sign in.", 5000);
+}
 $("loginCode").addEventListener("submit", async e => {
   e.preventDefault(); const b = $("btnVerify"); b.disabled = true;
   const { data, error } = await sb.auth.verifyOtp({ email: $("lEmail").value.trim().toLowerCase(), token: $("lCode").value.trim(), type: "email" });
@@ -715,7 +751,7 @@ document.addEventListener("click", e => { if (!e.target.closest(".menu")) $("mor
 $("moreMenu").addEventListener("click", e => {
   const c = e.target.closest("[data-cmd]"); if (!c) return; $("moreMenu").hidden = true;
   ({ import: () => openImport("tracker"), bluebeam: () => openImport("bluebeam"), history: () => openImport("history"), export: exportExcel,
-    team: async () => { await loadMembers(); renderTeam(); $("ovTeam").hidden = false; }, trash: () => { showTrash = true; render(); }, signout: signOut })[c.dataset.cmd]();
+    team: async () => { await loadMembers(); renderTeam(); $("ovTeam").hidden = false; }, trash: () => { showTrash = true; render(); }, password: changePassword, signout: signOut })[c.dataset.cmd]();
 });
 document.querySelectorAll(".overlay").forEach(ov => ov.addEventListener("click", e => { if (e.target === ov || e.target.closest("[data-close]")) ov.hidden = true; }));
 document.addEventListener("keydown", e => { if (e.key === "Escape") { $("lightbox").hidden = true; document.querySelectorAll(".overlay").forEach(o => o.hidden = true); $("moreMenu").hidden = true; } });
