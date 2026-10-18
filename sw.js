@@ -1,5 +1,5 @@
 // Keeps the app's own files on the phone so it opens with no signal. Data always goes to Supabase directly.
-const CACHE = "caivan-dl-v2";
+const CACHE = "caivan-dl-v3";
 const SHELL = ["./", "index.html", "app.js", "logic.js", "config.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png",
   "lib/supabase.js", "lib/591.supabase.js", "lib/xlsx.full.min.js", "lib/jspdf.umd.min.js", "lib/exifr.umd.js"];
 

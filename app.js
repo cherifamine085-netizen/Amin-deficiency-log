@@ -86,7 +86,8 @@ $("loginEmail").addEventListener("submit", async e => {
   e.preventDefault(); const email = $("lEmail").value.trim().toLowerCase(); const b = $("btnSendCode"); b.disabled = true; $("loginMsg").textContent = "";
   const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
   b.disabled = false;
-  if (error) { $("loginMsg").textContent = /rate|seconds/i.test(error.message) ? "Too many codes requested. Wait a minute and try again." : "Couldn't send the code: " + error.message; return; }
+  if (error) { $("loginMsg").textContent = /email rate limit/i.test(error.message) ? "The sign-in email limit was reached (the built-in sender allows only a few emails per hour). Wait up to an hour and press the button once, or set up your own email sender in Supabase."
+    : /rate|seconds/i.test(error.message) ? "Too many codes requested. Wait a minute and try again." : "Couldn't send the code: " + error.message; return; }
   $("loginEmail").hidden = true; $("loginCode").hidden = false; $("lCode").focus();
   $("loginMsg").textContent = "Code sent to " + email + ". Check your inbox (and junk folder).";
 });
